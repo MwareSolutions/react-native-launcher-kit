@@ -99,11 +99,13 @@ public class LauncherKitModule extends ReactContextBaseJavaModule {
 
       try {
         this.banner = pManager.getApplicationBanner(ri.activityInfo.packageName);
-        // Process the icon to a Bitmap
         if(this.banner != null) {
-          Bitmap bannerBitmap = drawableToBitmap(this.banner);
+          Bitmap bannerBitmap = ((BitmapDrawable) this.banner).getBitmap();
           if (bannerBitmap != null) {
             this.bannerPath = saveIconToFile(bannerBitmap, "banner_" + this.packageName.toString(), context);
+          }
+          if (includeAccentColor && bannerBitmap != null) {
+            this.accentColor = getAccentColor(bannerBitmap);
           }
         }
       } catch (PackageManager.NameNotFoundException e) {
@@ -111,10 +113,13 @@ public class LauncherKitModule extends ReactContextBaseJavaModule {
       }
 
       this.icon = ri.loadIcon(pManager);
-      // Process the icon to a Bitmap
-      Bitmap iconBitmap = drawableToBitmap(this.icon);
+
       if (iconBitmap != null) {
+        Bitmap iconBitmap = ((BitmapDrawable) this.icon).getBitmap();
         this.iconPath = saveIconToFile(iconBitmap, "icon_" + this.packageName.toString(), context);
+        if (includeAccentColor && iconBitmap != null) {
+          this.accentColor = getAccentColor(iconBitmap);
+        }
       }
 
       if (includeVersion) {
@@ -127,23 +132,7 @@ public class LauncherKitModule extends ReactContextBaseJavaModule {
         }
       }
 
-      if (includeAccentColor && iconBitmap != null) {
-        this.accentColor = getAccentColor(iconBitmap);
-      }
-    }
-
-    private Bitmap drawableToBitmap(Drawable drawable) {
-      if (drawable instanceof BitmapDrawable) {
-        return ((BitmapDrawable) drawable).getBitmap();
-      } else {
-        int width = Math.max(drawable.getIntrinsicWidth(), 1);
-        int height = Math.max(drawable.getIntrinsicHeight(), 1);
-        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, width, height);
-        drawable.draw(canvas);
-        return bitmap;
-      }
+  
     }
 
     private String saveIconToFile(Bitmap iconBitmap, String fileName, Context context) {
